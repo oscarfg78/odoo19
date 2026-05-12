@@ -1,8 +1,6 @@
-version: '3.8'
-
 services:
   web:
-    image: odoo:19.0
+    build: .  # <--- Esto indica que use el Dockerfile de la raíz
     depends_on:
       db:
         condition: service_healthy
@@ -21,7 +19,6 @@ services:
       - PORT=${POSTGRES_PORT:-5432}
       - REDIS_HOST=${REDIS_HOST:-redis}
     restart: always
-
   db:
     image: postgres:16-alpine
     environment:
