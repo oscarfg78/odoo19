@@ -1,0 +1,12 @@
+# Docker
+.env
+logs/*.log
+
+# Odoo
+*.pyc
+*.pyo
+__pycache__/
+
+# OS
+.DS_Store
+Thumbs.db
