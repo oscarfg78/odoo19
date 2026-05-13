@@ -1,62 +1,71 @@
 # Guía de Despliegue Profesional - Odoo 19
 
-Esta guía detalla los pasos necesarios para configurar, personalizar y desplegar tu instancia de Odoo 19 de manera profesional.
+Esta guía detalla los pasos para desplegar Odoo 19 tanto en un entorno local (Docker Compose) como en la nube (**Railway**).
 
-## 1. Configuración Inicial (Antes del Deploy)
+## 1. Despliegue en Railway (Recomendado para Producción)
+
+Para una mayor estabilidad y eficiencia en Railway, sigue estas recomendaciones:
+
+### A. Base de Datos Gestionada
+En lugar de correr PostgreSQL en un contenedor, utiliza el servicio de **PostgreSQL de Railway**.
+1. En Railway, haz clic en `+ New` -> `Database` -> `PostgreSQL`.
+2. Railway generará variables como `PGHOST`, `PGUSER`, `PGPASSWORD`. Nuestro script `entrypoint.sh` detectará estas variables automáticamente.
+
+### B. Volúmenes Persistentes (Crítico)
+Odoo guarda archivos (imágenes, documentos) en el sistema de archivos. Para no perderlos al reiniciar:
+1. En Railway, selecciona tu servicio de Odoo.
+2. Ve a la pestaña **Settings** -> **Volumes** -> **Add Volume**.
+3. Monta el volumen en la ruta: `/var/lib/odoo`.
+
+### C. Variables de Entorno en Railway
+Configura las siguientes variables en la pestaña **Variables** de tu servicio Odoo en Railway:
+- `ODOO_PASSWORD`: Tu "Master Password" para gestionar bases de datos.
+- `PORT`: (Asignada automáticamente por Railway).
+- `HOST`, `USER`, `PASSWORD`, `PORT`: (Si no usas el Postgres de Railway, define aquí los datos de tu DB externa).
+
+---
+
+## 2. Configuración Local (Docker Compose)
 
 ### Archivo `.env`
-El archivo `.env` centraliza todas las variables de entorno. Es crucial que cambies los siguientes valores antes de desplegar en producción:
-
-- `POSTGRES_PASSWORD`: Cambia `odoo_password_change_me` por una contraseña fuerte.
-- `ODOO_ADMIN_PASSWORD`: Cambia `admin_password_change_me`. Esta es la "Master Password" para crear/borrar bases de datos en Odoo.
-- `ODOO_PORT`: Puerto en el que Odoo será accesible (por defecto 8069).
+Centraliza los valores locales. Cambia `POSTGRES_PASSWORD` y `ODOO_ADMIN_PASSWORD` antes de iniciar.
 
 ### Archivo `config/odoo.conf`
-Este archivo contiene la configuración fina de Odoo. 
-- **Workers**: Hemos configurado `workers = 3`. Esto activa el modo multiproceso, necesario para un rendimiento óptimo. Si tienes un servidor con pocos recursos (menos de 2GB RAM), considera bajar este valor a `0` (modo single-process).
-- **Addons Path**: Ya está configurado para buscar en las carpetas `addons/` y `extra-addons/` de tu proyecto.
+- **Workers**: Configurado en `2` por defecto. Si tienes poca RAM (<1GB), cámbialo a `0`.
+- **Addons Path**: Configurado para buscar en `addons/` y `extra-addons/`.
 
-## 2. Gestión de Módulos (Addons)
+---
 
-- **`addons/`**: Usa esta carpeta para tus módulos personalizados o desarrollos propios.
-- **`extra-addons/`**: Usa esta carpeta para módulos descargados de la Odoo App Store o terceros.
+## 3. Gestión de Módulos (Addons)
 
-Cualquier carpeta dentro de estas será detectada automáticamente por Odoo.
+- **`addons/`**: Módulos personalizados (tus desarrollos).
+- **`extra-addons/`**: Módulos de terceros o de la Odoo Store.
 
-## 3. Despliegue
+Ambas carpetas se sincronizan automáticamente con el contenedor.
 
-Para iniciar la instancia, ejecuta:
+---
 
+## 4. Comandos de Despliegue
+
+### Local
 ```bash
 docker-compose up -d
 ```
 
-Esto levantará:
-- **web**: El servidor de Odoo.
-- **db**: PostgreSQL 16 (optimizado).
-- **redis**: Para gestión de sesiones y caché (opcional pero recomendado).
-
-## 4. Verificación y Logs
-
-Puedes monitorear el estado de la instancia con:
-
+### Logs
+Para ver qué está pasando en tiempo real:
 ```bash
-docker-compose ps
-```
-
-Para ver los registros en tiempo real:
-
-```bash
+# Local
 docker-compose logs -f web
+
+# Railway
+# Usa la pestaña "Logs" en el dashboard de Railway.
 ```
-
-Los logs también se guardan persistentemente en la carpeta `./logs/odoo-server.log`.
-
-## 5. Mantenimiento y Backups
-
-- **Base de Datos**: Los datos de PostgreSQL persisten en un volumen de Docker llamado `odoo-db-data`.
-- **Archivos**: Los documentos y adjuntos se guardan en el volumen `odoo-data`.
-- **Backup**: Se recomienda usar herramientas como `docker-exec` para realizar dumps de la base de datos periódicamente.
 
 ---
-**Nota de Seguridad**: Nunca subas el archivo `.env` a repositorios públicos si contiene contraseñas reales. Añade `.env` a tu `.gitignore`.
+
+## 5. Mantenimiento y Seguridad
+
+- **Proxy Mode**: Está habilitado por defecto (`proxy_mode = True`), lo cual es necesario para que el SSL de Railway funcione correctamente.
+- **Backups**: Si usas el Postgres gestionado de Railway, los backups son automáticos. Si usas Docker local, asegúrate de respaldar el volumen `odoo-db-data`.
+- **Seguridad**: Asegúrate de que `.env` esté en tu `.gitignore`.

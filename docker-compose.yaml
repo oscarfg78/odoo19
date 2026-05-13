@@ -7,7 +7,7 @@ services:
       redis:
         condition: service_started
     ports:
-      - "${ODOO_PORT:-8069}:8069"
+      - "${ODOO_PORT:-8069}:${PORT:-8069}"
     volumes:
       - odoo-data:/var/lib/odoo
       - ./config:/etc/odoo
@@ -21,7 +21,6 @@ services:
       - PORT=${POSTGRES_PORT:-5432}
       - ODOO_PASSWORD=${ODOO_ADMIN_PASSWORD:-admin_password_change_me}
       - REDIS_HOST=${REDIS_HOST:-redis}
-    command: ["odoo", "-c", "/etc/odoo/odoo.conf"]
     restart: ${RESTART_POLICY:-always}
 
   db:
