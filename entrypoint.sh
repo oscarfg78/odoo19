@@ -29,6 +29,7 @@ if [ "$USER" = "postgres" ]; then
     
     # Switch Odoo to use the newly created role
     export USER="odoo"
+    export PGUSER="odoo"
     echo "Successfully switched Odoo database user to 'odoo'."
 fi
 
@@ -38,7 +39,14 @@ HTTP_PORT=${PORT:-8069}
 
 echo "Starting Odoo 19 on port $HTTP_PORT..."
 echo "Database Host: $HOST"
+echo "Database User: $USER"
 
 # Start Odoo
-# We pass the port via command line to ensure it overrides any config file
-exec odoo -c /etc/odoo/odoo.conf --http-port=$HTTP_PORT "$@"
+# We pass the port and database config via command line to ensure it overrides any config file
+exec odoo -c /etc/odoo/odoo.conf \
+    --http-port="$HTTP_PORT" \
+    --db_host="$HOST" \
+    --db_port="$DB_PORT" \
+    --db_user="$USER" \
+    --db_password="$PASSWORD" \
+    "$@"
