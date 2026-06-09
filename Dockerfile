@@ -7,6 +7,7 @@ USER root
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     curl \
+    postgresql-client \
     && rm -rf /var/lib/apt/lists/*
 
 # Creamos directorios necesarios y ajustamos permisos

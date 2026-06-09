@@ -15,6 +15,23 @@ for var in "${required_vars[@]}"; do
   fi
 done
 
+# --- Railway Default User Workaround ---
+# Odoo blocks the 'postgres' user for security reasons.
+# Railway's default Postgres plugin uses 'postgres'.
+# We will automatically create an 'odoo' role if 'postgres' is detected.
+if [ "$USER" = "postgres" ]; then
+    echo "Detected 'postgres' database user. Odoo blocks this for security."
+    echo "Attempting to create an 'odoo' role in the database..."
+    export PGPASSWORD=$PASSWORD
+    # Run SQL command to create the role if it doesn't exist.
+    # The default database in Railway Postgres is 'railway'.
+    psql -h "$HOST" -p "$DB_PORT" -U "postgres" -d "railway" -c "DO \$\$ BEGIN IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'odoo') THEN CREATE ROLE odoo LOGIN SUPERUSER CREATEDB PASSWORD '$PASSWORD'; END IF; END \$\$;"
+    
+    # Switch Odoo to use the newly created role
+    export USER="odoo"
+    echo "Successfully switched Odoo database user to 'odoo'."
+fi
+
 # --- Port Handling ---
 # Railway provides a dynamic $PORT. Odoo needs to know this.
 HTTP_PORT=${PORT:-8069}
