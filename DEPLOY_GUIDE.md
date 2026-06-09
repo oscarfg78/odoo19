@@ -11,6 +11,9 @@ En lugar de correr PostgreSQL en un contenedor, utiliza el servicio de **Postgre
 1. En Railway, haz clic en `+ New` -> `Database` -> `PostgreSQL`.
 2. Railway generará variables como `PGHOST`, `PGUSER`, `PGPASSWORD`. Nuestro script `entrypoint.sh` detectará estas variables automáticamente.
 
+> [!NOTE]
+> El script ahora valida que **HOST**, **USER**, **PASSWORD**, **DB_PORT** y **PORT** estén definidas; si falta alguna, el contenedor se detendrá con un mensaje de error claro.
+
 ### B. Volúmenes Persistentes (Crítico)
 Odoo guarda archivos (imágenes, documentos) en el sistema de archivos. Para no perderlos al reiniciar:
 1. En Railway, selecciona tu servicio de Odoo.
@@ -22,6 +25,9 @@ Configura las siguientes variables en la pestaña **Variables** de tu servicio O
 - `ODOO_PASSWORD`: Tu "Master Password" para gestionar bases de datos.
 - `PORT`: (Asignada automáticamente por Railway).
 - `HOST`, `USER`, `PASSWORD`, `PORT`: (Si no usas el Postgres de Railway, define aquí los datos de tu DB externa).
+
+> [!NOTE]
+> En el **Dockerfile** se ha añadido `EXPOSE 8069` para que Railway pueda mapear correctamente el puerto HTTP de Odoo.
 
 ---
 

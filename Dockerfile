@@ -24,4 +24,5 @@ RUN chmod +x /entrypoint.sh \
 USER odoo
 
 # Definimos el script de entrada
+EXPOSE 8069
 ENTRYPOINT ["/entrypoint.sh"]

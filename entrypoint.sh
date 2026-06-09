@@ -6,6 +6,14 @@ export HOST=${HOST:-$PGHOST}
 export USER=${USER:-$PGUSER}
 export PASSWORD=${PASSWORD:-$PGPASSWORD}
 export DB_PORT=${DB_PORT:-$PGPORT}
+# Validate required environment variables
+required_vars=("HOST" "USER" "PASSWORD" "DB_PORT" "PORT")
+for var in "${required_vars[@]}"; do
+  if [ -z "$(eval echo \$$var)" ]; then
+    echo "Error: $var environment variable not set. Railway must provide it."
+    exit 1
+  fi
+done
 
 # --- Port Handling ---
 # Railway provides a dynamic $PORT. Odoo needs to know this.
